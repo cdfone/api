@@ -35,7 +35,7 @@ paths:
       operationId: get-status
       security:
         - basic-auth: []
-      description: 'This endpoint provides information about the current status of the API. '
+      description: This endpoint provides information about the current status of the API.
   /user:
     post:
       summary: Update User
