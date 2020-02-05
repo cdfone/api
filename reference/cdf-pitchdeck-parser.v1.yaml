@@ -8,37 +8,13 @@ info:
     email: support@cdf.one
   description: Documentation of CDF Pitchdeck Parser API v1
 servers:
-  - url: 'http://localhost:3000'
+  - url: 'https://v1-ndnscvyiya-ew.a.run.app'
+  - url: 'https://api.cdf.one'
+    description: ''
 paths:
-  /status:
-    get:
-      summary: Get current status of API
-      tags: []
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                  detail:
-                    type: object
-              examples:
-                Example 1:
-                  value:
-                    message: OK
-                    detail:
-                      API: API is operational
-      operationId: get-status
-      security:
-        - basic-auth: []
-      description: This endpoint provides information about the current status of the API.
-  /user:
+  /user/webhook/new:
     post:
-      summary: Update User
+      summary: Update webhook
       tags: []
       responses:
         '201':
@@ -120,7 +96,7 @@ paths:
             examples:
               Example:
                 value:
-                  webhook_url: 'https://webhook.site/b309fdd9-8b9b-44e9-98f1-fc859a4685d5'
+                  webhook_url: 'https://yourdomain.com/webhooks/fetchparseddocument'
         description: |-
           Your request body should include the new Webhook URL, which will be stored and where all responses will be sent to.
           If you need multiple URLs please contact support.
@@ -146,6 +122,12 @@ paths:
                 required:
                   - message
                   - webhook_url
+              examples:
+                Example:
+                  value:
+                    message: Successfully accepted task
+                    webhook_url: 'https://yourdomain.com/webhooks/fetchparseddocument'
+                    trace_id: my_trace_id_1234
         '401':
           description: Unauthorized
           content:
@@ -196,23 +178,43 @@ paths:
                   properties:
                     fields:
                       type: array
+                      description: Provide an array of fields you want to extract from the document. See description for possible field names.
                       items:
                         type: string
                     verify_emails:
                       type: boolean
+                      description: Enables email verification of found addresses.
                     fetch_linkedin:
                       type: boolean
+                      description: Enables fetching of LinkedIn profile URLs for the founders/team.
                     fetch_founders_email:
                       type: boolean
+                      description: 'Enables fetching of founders email addresses, if not already present in the document.'
                   required:
                     - fields
                 trace_id:
                   type: string
+                  description: Optional trace_id to match webhook response to posted request.
               required:
                 - location
-  /user/webhook_url:
+            examples:
+              Example:
+                value:
+                  params:
+                    fields:
+                      - company_name
+                      - founders
+                      - contact
+                    verify_emails: true
+                  location:
+                    url: 'https://mydocumentstorage/folder/mydocument.pdf?token=867dc912-7db2-425e-8b3g-6f254f2dad80f'
+                  filename: mydocument.pdf
+                  trace_id: my_trace_id_1234
+        description: "Apart from the URL, from which the document can be requested and which should be stored within the \"location\" object, the second required parameter is the \"fields\" array. This controls the desired output of the parser. \n\nCurrently following fields are supported:\n- \"company_name\": Add this to the array if you don't know the company name yet and would like to have it extracted.\n\n- \"founders\": This field will extract the founders/team and their respective role within the company. Enhance the result by setting the \"fetch_linkedin\" and \"fetch_founders_email\" parameters.\n\n- \"contact\": By adding this field you will receive a contacts array with your response, which states all contact information found, such as email addresses, website and phone numbers. You can increase accuracy by setting the \"verify_emails\" parameter. \n"
+    parameters: []
+  /user/webhook:
     get:
-      summary: Get current webhook URL from storage
+      summary: Get stored webhook
       tags: []
       responses:
         '200':
@@ -258,16 +260,96 @@ paths:
                     error: Unauthorized
                     detail:
                       Basic Authorization: "Provided credentials weren't correct"
-      operationId: get-user-webhook_url
+      operationId: get-user-webhook
       security:
         - basic-auth: []
-      description: "This path provides information about the webhook URL, which is currently stored for the respective calling user. \nIt only supports GET. Use POST /user to update this webhook."
+      description: "This path provides information about the webhook URL, which is currently stored for the respective calling user. \n\nIt only supports GET. Use POST /user/webhook/new to update your webhook URL."
+    parameters: []
+  /user/webhook/test:
+    post:
+      summary: Test webhook
+      tags: []
+      responses:
+        '202':
+          description: Accepted
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  webhook_url:
+                    type: string
+                  trace_id:
+                    type: string
+                required:
+                  - message
+                  - webhook_url
+              examples:
+                Example:
+                  value:
+                    message: Successfully posted test message to webhook
+                    webhook_url: 'https://yourdomain.com/webhooks/fetchparseddocument'
+                    trace_id: my_trace_id_1234
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+              examples:
+                Example:
+                  value:
+                    error: No webhook URL found
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                  detail:
+                    type: object
+              examples:
+                Example 1:
+                  value:
+                    error: Unauthorized
+                    detail:
+                      Basic Authorization: "Provided credentials weren't correct"
+                Example 2:
+                  value:
+                    error: Unauthorized
+                    detail:
+                      Basic Authorization: Authorization header is missing
+      operationId: post-user-webhook-test
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                trace_id:
+                  type: string
+                  description: Optional trace_id to match webhook response to posted request.
+            examples:
+              Example:
+                value:
+                  trace_id: my_trace_id_1234
+      security:
+        - basic-auth: []
+      description: "Posts a test message to your webhook URL, which needs to be set before. \n\nIf you receive many requests to that webhook you can provide a trace_id with the request, which will be present in the request body towards your webhook."
 components:
   schemas: {}
   securitySchemes:
     basic-auth:
       type: http
       scheme: Basic
-      description: ''
+      description: 'Please provide your username and password, whereas the password is equal to the API key, which you have received upon registration.'
 tags:
   - name: CDF Pitchdeck Parser API
