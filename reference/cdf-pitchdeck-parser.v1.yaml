@@ -1,0 +1,273 @@
+openapi: 3.0.0
+info:
+  title: CDF Pitchdeck Parser
+  version: '1.0'
+  contact:
+    name: CDF Technologies GmbH
+    url: 'https://cdf.one'
+    email: support@cdf.one
+  description: Documentation of CDF Pitchdeck Parser API v1
+servers:
+  - url: 'http://localhost:3000'
+paths:
+  /status:
+    get:
+      summary: Get current status of API
+      tags: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  detail:
+                    type: object
+              examples:
+                Example 1:
+                  value:
+                    message: OK
+                    detail:
+                      API: API is operational
+      operationId: get-status
+      security:
+        - basic-auth: []
+      description: 'This endpoint provides information about the current status of the API. '
+  /user:
+    post:
+      summary: Update User
+      tags: []
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+              examples:
+                Example:
+                  value:
+                    message: successfully updated webhook URL
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                  detail:
+                    type:
+                      - string
+                      - object
+              examples:
+                Example 1:
+                  value:
+                    error: Unauthorized
+                    detail:
+                      Basic Authorization: "Provided credentials weren't correct"
+                Example 2:
+                  value:
+                    error: Unauthorized
+                    detail:
+                      Registration: User is not registered with this API service
+                Example 3:
+                  value:
+                    error: Unauthorized
+                    detail:
+                      Basic Authorization: "Field 'username' is required. Enter 'user_id'."
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                  detail:
+                    type:
+                      - string
+                      - object
+              examples:
+                Example 1:
+                  value:
+                    error: Forbidden
+                    detail:
+                      Registration: User was not created yet. Please use /user/create or contact support.
+      operationId: post-user-update
+      description: Updates user object in database with a user specific webhook URL. The URL is stored permanently in order to provide a consistent workflow with the client.
+      security:
+        - basic-auth: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                webhook_url:
+                  type: string
+                  description: ''
+              required:
+                - webhook_url
+            examples:
+              Example:
+                value:
+                  webhook_url: 'https://webhook.site/b309fdd9-8b9b-44e9-98f1-fc859a4685d5'
+        description: |-
+          Your request body should include the new Webhook URL, which will be stored and where all responses will be sent to.
+          If you need multiple URLs please contact support.
+    parameters: []
+  /document:
+    post:
+      summary: Post document to parse
+      tags: []
+      responses:
+        '202':
+          description: Accepted
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  webhook_url:
+                    type: string
+                  trace_id:
+                    type: string
+                required:
+                  - message
+                  - webhook_url
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                  detail:
+                    type: object
+              examples:
+                Example 1:
+                  value:
+                    error: Unauthorized
+                    detail:
+                      Basic Authorization: "Provided credentials weren't correct"
+                Example 2:
+                  value:
+                    error: Unauthorized
+                    detail:
+                      Basic Authorization: Authorization header is missing
+      operationId: post-document
+      description: |-
+        This endpoint is used to pass documents (pitch decks) to the parser. Therefore the document, which needs to be in PDF-format should be stored in an online location, and the URL to fetch the document should be passed to the endpoint.
+
+        Please see the body description below for all required and optional parameters.
+      security:
+        - basic-auth: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                location:
+                  type: object
+                  required:
+                    - url
+                  properties:
+                    url:
+                      type: string
+                filename:
+                  type: string
+                  description: "Passing the filename including the ending ('.pdf') will increase accuracy of the company name detection, if selected."
+                params:
+                  type: object
+                  properties:
+                    fields:
+                      type: array
+                      items:
+                        type: string
+                    verify_emails:
+                      type: boolean
+                    fetch_linkedin:
+                      type: boolean
+                    fetch_founders_email:
+                      type: boolean
+                  required:
+                    - fields
+                trace_id:
+                  type: string
+              required:
+                - location
+  /user/webhook_url:
+    get:
+      summary: Get current webhook URL from storage
+      tags: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  webhook_url:
+                    type: string
+              examples:
+                Example 1:
+                  value:
+                    webhook_url: webhook_url
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+              examples:
+                Example 1:
+                  value:
+                    error: No webhook URL found
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                  detail:
+                    type: object
+              examples:
+                Example 1:
+                  value:
+                    error: Unauthorized
+                    detail:
+                      Basic Authorization: "Provided credentials weren't correct"
+      operationId: get-user-webhook_url
+      security:
+        - basic-auth: []
+      description: "This path provides information about the webhook URL, which is currently stored for the respective calling user. \nIt only supports GET. Use POST /user to update this webhook."
+components:
+  schemas: {}
+  securitySchemes:
+    basic-auth:
+      type: http
+      scheme: Basic
+      description: ''
+tags:
+  - name: CDF Pitchdeck Parser API
