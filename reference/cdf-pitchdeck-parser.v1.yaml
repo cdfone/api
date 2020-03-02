@@ -128,6 +128,25 @@ paths:
                     message: Successfully accepted task
                     webhook_url: 'https://yourdomain.com/webhooks/fetchparseddocument'
                     trace_id: my_trace_id_1234
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                  detail:
+                    type:
+                      - string
+                      - object
+              examples:
+                Example 1:
+                  value:
+                    error: Bad Request
+                    detail:
+                      Provided URL: No PDF document provided
         '401':
           description: Unauthorized
           content:
@@ -195,6 +214,9 @@ paths:
                 trace_id:
                   type: string
                   description: Optional trace_id to match webhook response to posted request.
+                company_name:
+                  type: string
+                  description: "Pass this parameter, if you already know the company name and do not need automatic company name detection. Important: If you pass this parameter you can't include \"company_name\" in the \"fields\" array of \"params\"."
               required:
                 - location
             examples:
@@ -210,7 +232,7 @@ paths:
                     url: 'https://mydocumentstorage/folder/mydocument.pdf?token=867dc912-7db2-425e-8b3g-6f254f2dad80f'
                   filename: mydocument.pdf
                   trace_id: my_trace_id_1234
-        description: "Apart from the URL, from which the document can be requested and which should be stored within the \"location\" object, the second required parameter is the \"fields\" array. This controls the desired output of the parser. \n\nCurrently following fields are supported:\n- \"company_name\": Add this to the array if you don't know the company name yet and would like to have it extracted.\n\n- \"founders\": This field will extract the founders/team and their respective role within the company. Enhance the result by setting the \"fetch_linkedin\" and \"fetch_founders_email\" parameters.\n\n- \"contact\": By adding this field you will receive a contacts array with your response, which states all contact information found, such as email addresses, website and phone numbers. You can increase accuracy by setting the \"verify_emails\" parameter. \n"
+        description: "Apart from the URL, from which the document can be requested and which should be stored within the \"location\" object, the second required parameter is the \"fields\" array. This controls the desired output of the parser. \n\nCurrently following fields are supported:\n- \"company_name\": Add this to the array if you don't know the company name yet and would like to have it extracted. If you don't need automatic company name detection and in fact, already know the name, you can pass it via the \"company_name\" parameter to increase accuracy.\n\n- \"founders\": This field will extract the founders/team and their respective role within the company. Enhance the result by setting the \"fetch_linkedin\" and \"fetch_founders_email\" parameters.\n\n- \"contact\": By adding this field you will receive a contacts array with your response, which states all contact information found, such as email addresses, website and phone numbers. You can increase accuracy by setting the \"verify_emails\" parameter. \n\n- \"pitch\": Extracts a short text, which describes the Startup's pitch.\n"
     parameters: []
   /user/webhook:
     get:
