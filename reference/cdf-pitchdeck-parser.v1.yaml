@@ -8,9 +8,7 @@ info:
     email: support@cdf.one
   description: Documentation of CDF Pitchdeck Parser API v1
 servers:
-  - url: 'https://v1-ndnscvyiya-ew.a.run.app'
-  - url: 'https://api.cdf.one'
-    description: ''
+  - url: 'https://api.pitchtable.io'
 paths:
   /user/webhook/new:
     post:
