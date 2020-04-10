@@ -22,6 +22,9 @@ This article shows the request, that is POSTed to the user's webhook after a doc
       "type": "array",
       "items": { "$ref": "#/definitions/founder" }
     },
+    "pitch_short": {
+      "type": "string"
+    },
     "pitch_long": {
       "type": "string"
     },
@@ -30,6 +33,16 @@ This article shows the request, that is POSTed to the user's webhook after a doc
     },
     "keywords": {
       "type": "array"
+    },
+    "industry": {
+      "type": "array"
+    },
+    "technologies": {
+      "type": "array"
+    },
+    "market_data": {
+      "type": "array",
+      "items": { "$ref": "#/definitions/marketdata" }
     },
     "trace_id": {
       "type": "object",
@@ -76,6 +89,23 @@ This article shows the request, that is POSTed to the user's webhook after a doc
         },
         "email_valid": {
           "type": ["boolean", "string", "array"]
+        }
+      }
+    },
+    "marketdata": {
+      "type": "object",
+      "properties": {
+        "description": {
+          "type": "string"
+        },
+        "number": {
+          "type": "number"
+        },
+        "multiplier": {
+          "type": "string"
+        },
+        "unit": {
+          "type": "string"
         }
       }
     }
